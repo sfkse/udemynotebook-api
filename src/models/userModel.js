@@ -1,19 +1,12 @@
-const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require("uuid");
 const pool = require("../configs/db.config");
-const AppError = require("../helpers/errorHelper");
 const { getTimestampSeconds } = require("../helpers/dateHelper");
 const { PLAN_TYPES } = require("../helpers/userHelper");
-const e = require("express");
+const AppError = require("../helpers/errorHelper");
 
 const createUser = async (userData, next) => {
   try {
     const { email, googleID } = userData;
-    // Check if user already exists
-    const userExists = await getSingleUserByEmail(email, next);
-    if (userExists.length > 0) {
-      return next(new AppError("User already exists", 409));
-    }
 
     const userID = uuidv4();
     const createdAt = getTimestampSeconds();
@@ -21,14 +14,13 @@ const createUser = async (userData, next) => {
     const plan = PLAN_TYPES.FREE;
 
     const result = await pool.execute(
-      "INSERT INTO users (idusers, googleId, email, createdAt, updatedAt, plan) VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO users (idusers, googleID, email, createdAt, updatedAt, plan) VALUES (?, ?, ?, ?, ?, ?)",
       [userID, googleID, email, createdAt, updatedAt, plan]
     );
 
-    if (result[0].affectedRows) return await getSingleUserByEmail(email, next);
-    else return next(new AppError("Error when fetching user from db"));
+    if (result[0].affectedRows) return { userID, email, plan };
   } catch (error) {
-    throw next(error);
+    throw next(new AppError(`Error when creating user: ${error}`));
   }
 };
 
@@ -54,7 +46,20 @@ const getSingleUserByEmail = async (email, next) => {
       "SELECT * FROM users WHERE email = ? and active",
       [email]
     );
-    return result[0];
+    return result[0][0];
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getUserByGoogleID = async (googleID, next) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM users WHERE googleID = ? and active",
+      [googleID]
+    );
+
+    return result[0][0];
   } catch (error) {
     return next(error);
   }
@@ -82,5 +87,6 @@ module.exports = {
   getSingleUserByEmail,
   createUser,
   updateUser,
+  getUserByGoogleID,
 };
 

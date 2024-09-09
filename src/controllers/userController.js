@@ -5,8 +5,26 @@ const {
   updateUser,
   createUser,
   getCustomerUsers,
+  getUserByGoogleID,
 } = require("../models/userModel");
 const { getUserById } = require("../models/userModel");
+
+const authenticateUser = async (req, res, next) => {
+  const { email, googleID } = req.body;
+  try {
+    const user = await getUserByGoogleID(googleID, next);
+    if (!user) {
+      const newUser = await createUser({ email, googleID }, next);
+      console.log("newUser", newUser);
+      return res.status(201).json(newUser);
+    }
+    const { idusers: userID, plan } = user;
+    console.log("user", email);
+    return res.status(200).json({ userID, email, plan });
+  } catch (error) {
+    return next(new AppError(`Error when authenticating user: ${error}`));
+  }
+};
 
 const getUsers = async (req, res, next) => {
   const { idcustomers } = res.locals.user;
@@ -81,6 +99,7 @@ const updateSingleUserLocation = async (req, res, next) => {
 };
 
 module.exports = {
+  authenticateUser,
   createNewUser,
   getUsers,
   getAllCustomerUsers,

@@ -2,16 +2,18 @@ const express = require("express");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const helmet = require("helmet");
+// const helmet = require("helmet");
 const path = require("path");
 const bodyParser = require("body-parser");
 const rateLimit = require("express-rate-limit");
 const xss = require("xss-clean");
 
-const { verifyJWTMiddleware } = require("./src/middlewares/authMiddleware");
+// const { verifyJWTMiddleware } = require("./src/middlewares/authMiddleware");
 const globalErrorHandler = require("./src/controllers/errorController");
 
 const userRoutes = require("./src/routes/userRoutes");
+const noteRoutes = require("./src/routes/noteRoutes");
+const courseRoutes = require("./src/routes/courseRoutes");
 
 // const { corsOptions } = require("./src/helpers/authhelper");
 const AppError = require("./src/helpers/errorHelper");
@@ -26,17 +28,18 @@ process.on("uncaughtException", (err) => {
  ** @desc GLOBAL MIDDLEWARES
  */
 // Implement CORS
-const corsOptions = {
-  origin: "http://localhost:3000",
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-  credentials: true,
-};
+// const corsOptions = {
+//   origin: "http://localhost:3000",
+//   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+//   preflightContinue: false,
+//   optionsSuccessStatus: 204,
+//   credentials: true,
+// };
 
 // app.use(cors(corsOptions));
 // app.options("http://localhost:3000", cors(corsOptions));
 
+app.use(cors());
 // Serving static files
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -79,6 +82,8 @@ app.use((req, res, next) => {
  ** @desc ROUTES
  */
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/notes", noteRoutes);
+app.use("/api/v1/courses", courseRoutes);
 
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
