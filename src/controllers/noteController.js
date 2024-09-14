@@ -3,6 +3,8 @@ const {
   getCourseNotesByUserID,
   createNote,
   getLectureNotes,
+  deleteNoteByID,
+  updateNoteByID, // Add this import
 } = require("../models/noteModel");
 
 const getUserCourseNotes = async (req, res, next) => {
@@ -43,6 +45,20 @@ const createLectureNote = async (req, res, next) => {
   }
 };
 
+const removeNote = async (req, res, next) => {
+  const { noteID } = req.query;
+
+  try {
+    const response = await deleteNoteByID(noteID, next);
+
+    return res.status(200).json(response);
+  } catch (error) {
+    return next(
+      new AppError(`Error in removeNote when deleting notes: ${error}`)
+    );
+  }
+};
+
 const getNotesByLectureName = async (req, res, next) => {
   const { lectureName, userID } = req.query;
 
@@ -59,9 +75,44 @@ const getNotesByLectureName = async (req, res, next) => {
   }
 };
 
+const updateNote = async (req, res, next) => {
+  const {
+    idnotes,
+    title,
+    lecture,
+    idcourses,
+    content,
+    timestamp,
+    isPublic,
+    idusers,
+  } = req.body;
+  console.log(req.body);
+  try {
+    const response = await updateNoteByID(
+      idnotes,
+      title,
+      lecture,
+      idcourses,
+      content,
+      timestamp,
+      isPublic,
+      idusers,
+      next
+    );
+
+    return res.status(200).json(response);
+  } catch (error) {
+    return next(
+      new AppError(`Error in updateNote when updating note: ${error}`)
+    );
+  }
+};
+
 module.exports = {
   getUserCourseNotes,
   getNotesByLectureName,
   createLectureNote,
+  removeNote,
+  updateNote, // Add this export
 };
 

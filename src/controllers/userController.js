@@ -19,7 +19,7 @@ const authenticateUser = async (req, res, next) => {
       return res.status(201).json(newUser);
     }
     const { idusers: userID, plan } = user;
-    console.log("user", email);
+
     return res.status(200).json({ userID, email, plan });
   } catch (error) {
     return next(new AppError(`Error when authenticating user: ${error}`));

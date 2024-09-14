@@ -1,6 +1,7 @@
 const pool = require("../configs/db.config");
 const { getTimestampSeconds } = require("../helpers/dateHelper");
 const { v4: uuidv4 } = require("uuid");
+const AppError = require("../helpers/errorHelper");
 
 const getCourseNotesByUserID = async (userID, courseID, next) => {
   try {
@@ -51,6 +52,19 @@ const createNote = async (
 
     if (result[0].affectedRows) return "Note created successfully";
   } catch (error) {
+    return next(new AppError(`Error creating note: ${error}`, 500));
+  }
+};
+
+const deleteNoteByID = async (noteID, next) => {
+  try {
+    const result = await pool.execute(
+      "UPDATE notes SET active = 0 WHERE idnotes = ?",
+      [noteID]
+    );
+
+    if (result[0].affectedRows) return "Note deleted successfully";
+  } catch (error) {
     return next(error);
   }
 };
@@ -68,9 +82,46 @@ const getLectureNotes = async (userID, lectureName, next) => {
   }
 };
 
+const updateNoteByID = async (
+  idnotes,
+  title,
+  lecture,
+  idcourses,
+  content,
+  timestamp,
+  isPublic,
+  idusers,
+  next
+) => {
+  try {
+    const updatedAt = getTimestampSeconds();
+
+    const [result] = await pool.query(
+      "UPDATE notes SET title = ?, lecture = ?, updatedAt = ?, idcourses = ?, content = ?, timestamp = ?, isPublic = ? WHERE idnotes = ? AND idusers = ?",
+      [
+        title,
+        lecture,
+        updatedAt,
+        idcourses,
+        content,
+        timestamp,
+        isPublic,
+        idnotes,
+        idusers,
+      ]
+    );
+    console.log(result);
+    if (result.affectedRows) return { message: "Note updated successfully" };
+  } catch (error) {
+    return next(new AppError(`Error updating note: ${error}`, 500));
+  }
+};
+
 module.exports = {
   getCourseNotesByUserID,
   getLectureNotes,
   createNote,
+  deleteNoteByID,
+  updateNoteByID,
 };
 
