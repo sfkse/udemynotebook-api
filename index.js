@@ -14,8 +14,9 @@ const globalErrorHandler = require("./src/controllers/errorController");
 const userRoutes = require("./src/routes/userRoutes");
 const noteRoutes = require("./src/routes/noteRoutes");
 const courseRoutes = require("./src/routes/courseRoutes");
+const googleDocsRoutes = require("./src/routes/googleDocsRoutes");
+const verifyGoogleAuth = require("./src/middlewares/verifyGoogleTokenMiddleware");
 
-// const { corsOptions } = require("./src/helpers/authhelper");
 const AppError = require("./src/helpers/errorHelper");
 
 const app = express();
@@ -81,6 +82,7 @@ app.use((req, res, next) => {
 /**
  ** @desc ROUTES
  */
+app.use("/api/v1/googledocs", verifyGoogleAuth, googleDocsRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/notes", noteRoutes);
 app.use("/api/v1/courses", courseRoutes);
