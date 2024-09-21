@@ -1,9 +1,13 @@
 const express = require("express");
 const router = express.Router();
 
-const { getCourseLectures } = require("../controllers/courseController");
+const {
+  getCourseLectures,
+  createCourse,
+} = require("../controllers/courseController");
 
 router.get("/:userID", getCourseLectures);
+router.post("/", createCourse);
 
 module.exports = router;
 

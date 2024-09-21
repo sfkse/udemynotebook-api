@@ -4,18 +4,16 @@ const { getTimestampSeconds } = require("../helpers/dateHelper");
 const { PLAN_TYPES } = require("../helpers/userHelper");
 const AppError = require("../helpers/errorHelper");
 
-const createUser = async (userData, next) => {
+const createUser = async (email, password, next) => {
   try {
-    const { email, googleID } = userData;
-
     const userID = uuidv4();
     const createdAt = getTimestampSeconds();
     const updatedAt = getTimestampSeconds();
     const plan = PLAN_TYPES.FREE;
 
     const result = await pool.execute(
-      "INSERT INTO users (idusers, googleID, email, createdAt, updatedAt, plan) VALUES (?, ?, ?, ?, ?, ?)",
-      [userID, googleID, email, createdAt, updatedAt, plan]
+      "INSERT INTO users (idusers, email, password, createdAt, updatedAt, plan) VALUES (?, ?, ?, ?, ?, ?)",
+      [userID, email, password, createdAt, updatedAt, plan]
     );
 
     if (result[0].affectedRows) return { userID, email, plan };

@@ -11,11 +11,15 @@ const xss = require("xss-clean");
 // const { verifyJWTMiddleware } = require("./src/middlewares/authMiddleware");
 const globalErrorHandler = require("./src/controllers/errorController");
 
+const authRoutes = require("./src/routes/authRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const noteRoutes = require("./src/routes/noteRoutes");
 const courseRoutes = require("./src/routes/courseRoutes");
 const googleDocsRoutes = require("./src/routes/googleDocsRoutes");
 const verifyGoogleAuth = require("./src/middlewares/verifyGoogleTokenMiddleware");
+const {
+  verifyTokenMiddleware,
+} = require("./src/middlewares/verifyTokenMiddleware");
 
 const AppError = require("./src/helpers/errorHelper");
 
@@ -83,9 +87,10 @@ app.use((req, res, next) => {
  ** @desc ROUTES
  */
 app.use("/api/v1/googledocs", verifyGoogleAuth, googleDocsRoutes);
-app.use("/api/v1/users", userRoutes);
-app.use("/api/v1/notes", noteRoutes);
-app.use("/api/v1/courses", courseRoutes);
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", verifyTokenMiddleware, userRoutes);
+app.use("/api/v1/notes", verifyTokenMiddleware, noteRoutes);
+app.use("/api/v1/courses", verifyTokenMiddleware, courseRoutes);
 
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

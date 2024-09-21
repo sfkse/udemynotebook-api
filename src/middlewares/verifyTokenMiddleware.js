@@ -1,14 +1,29 @@
-const AppError = require("../helpers/errorHelper");
 const jwt = require("jsonwebtoken");
 
 const verifyTokenMiddleware = (req, res, next) => {
-  const token = req.cookies.token;
+  const authorizationHeader = req.headers.authorization;
+
+  if (!authorizationHeader) {
+    return res.status(401).json({
+      status: "error",
+      message: "You are not logged in",
+    });
+  }
+
+  const token = authorizationHeader.split(" ")[1];
   if (!token) {
-    return next(new AppError("You are not logged in", 401));
+    return res.status(401).json({
+      status: "error",
+      message: "Token is not provided",
+    });
   }
 
   jwt.verify(token, process.env.JWT_ACCESS_SECRET, (err, user) => {
-    if (err) return next(new AppError("Token is not verified", 403));
+    if (err)
+      return res.status(403).json({
+        status: "error",
+        message: "Token is not verified",
+      });
     req.user = user;
   });
 
