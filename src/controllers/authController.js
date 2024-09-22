@@ -80,7 +80,6 @@ const handleRegisterUser = async (req, res, next) => {
 
 const handleRenewToken = async (req, res) => {
   const { refreshToken } = req.body;
-
   if (!refreshToken) {
     return res.status(400).json({ message: "Refresh token is required" });
   }
