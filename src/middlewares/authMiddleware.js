@@ -4,7 +4,6 @@ const AppError = require("../helpers/errorHelper");
 const { getUserById } = require("../models/userModel");
 
 const verifyJWTMiddleware = async (req, res, next) => {
-  console.log(req.headers.authorization);
   try {
     // 1) Getting token and check of it's there
     let token;

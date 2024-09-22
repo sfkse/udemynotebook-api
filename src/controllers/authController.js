@@ -1,9 +1,15 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { getSingleUserByEmail, createUser } = require("../models/userModel");
+const {
+  getSingleUserByEmail,
+  createUser,
+  storeRefreshToken,
+  getUserById,
+} = require("../models/userModel");
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 const SALT_ROUNDS = 10;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET; // Add this to your .env file
 
 const handleLoginUser = async (req, res, next) => {
   const { email, password } = req.body;
@@ -20,10 +26,27 @@ const handleLoginUser = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ userID: user.idusers }, JWT_ACCESS_SECRET, {
-      expiresIn: "1d",
+    const accessToken = jwt.sign({ userID: user.idusers }, JWT_ACCESS_SECRET, {
+      expiresIn: "15m", // Short-lived access token
     });
-    res.json({ userID: user.idusers, email: user.email, token });
+
+    const refreshToken = jwt.sign(
+      { userID: user.idusers },
+      JWT_REFRESH_SECRET,
+      {
+        expiresIn: "7d", // Long-lived refresh token
+      }
+    );
+
+    // Store the refresh token in the database
+    await storeRefreshToken(user.idusers, refreshToken);
+
+    res.json({
+      userID: user.idusers,
+      email: user.email,
+      accessToken,
+      refreshToken,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -42,7 +65,7 @@ const handleRegisterUser = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     const newUser = await createUser(email, hashedPassword, next);
 
-    const token = jwt.sign({ userId: newUser.idusers }, JWT_ACCESS_SECRET, {
+    const token = jwt.sign({ userID: newUser.idusers }, JWT_ACCESS_SECRET, {
       expiresIn: "1d",
     });
 
@@ -53,8 +76,42 @@ const handleRegisterUser = async (req, res, next) => {
   }
 };
 
+const handleRenewToken = async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(400).json({ message: "Refresh token is required" });
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+    const user = await getUserById(decoded.userID);
+
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    const newAccessToken = jwt.sign(
+      { userID: user.idusers },
+      JWT_ACCESS_SECRET,
+      {
+        expiresIn: "15m",
+      }
+    );
+
+    res.json({ accessToken: newAccessToken });
+  } catch (error) {
+    console.error(error);
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Refresh token expired" });
+    }
+    res.status(403).json({ message: "Invalid refresh token" });
+  }
+};
+
 module.exports = {
   handleLoginUser,
   handleRegisterUser,
+  handleRenewToken,
 };
 

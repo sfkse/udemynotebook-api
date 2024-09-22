@@ -28,11 +28,7 @@ const getUserById = async (userID, next) => {
       userID,
     ]);
 
-    const response = result[0].map((user) => ({
-      ...user,
-    }));
-
-    return response;
+    return result[0][0];
   } catch (error) {
     return next(error);
   }
@@ -80,11 +76,17 @@ const updateUser = async (userID, data, next) => {
   }
 };
 
+const storeRefreshToken = async (userId, refreshToken) => {
+  const query = "UPDATE users SET refreshToken = ? WHERE idusers = ?";
+  await pool.query(query, [refreshToken, userId]);
+};
+
 module.exports = {
   getUserById,
   getSingleUserByEmail,
   createUser,
   updateUser,
   getUserByGoogleID,
+  storeRefreshToken,
 };
 
