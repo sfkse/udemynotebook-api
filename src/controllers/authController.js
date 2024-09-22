@@ -26,17 +26,19 @@ const handleLoginUser = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const accessToken = jwt.sign({ userID: user.idusers }, JWT_ACCESS_SECRET, {
+    const userData = {
+      userID: user.idusers,
+    };
+
+    const accessToken = jwt.sign(userData, JWT_ACCESS_SECRET, {
       expiresIn: "15m", // Short-lived access token
     });
 
-    const refreshToken = jwt.sign(
-      { userID: user.idusers },
-      JWT_REFRESH_SECRET,
-      {
-        expiresIn: "7d", // Long-lived refresh token
-      }
-    );
+    const refreshToken = jwt.sign(userData, JWT_REFRESH_SECRET, {
+      expiresIn: "7d", // Long-lived refresh token
+    });
+
+    req.user = userData;
 
     // Store the refresh token in the database
     await storeRefreshToken(user.idusers, refreshToken);
