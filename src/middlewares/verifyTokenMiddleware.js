@@ -18,13 +18,13 @@ const verifyTokenMiddleware = (req, res, next) => {
     });
   }
 
-  jwt.verify(token, process.env.JWT_ACCESS_SECRET, (err, user) => {
+  jwt.verify(token, process.env.JWT_ACCESS_SECRET, (err, data) => {
     if (err)
       return res.status(403).json({
         status: "error",
         message: "Token is not verified",
       });
-    req.user = user;
+    req.user = data.userID;
   });
 
   next();

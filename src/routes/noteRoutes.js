@@ -6,11 +6,13 @@ const {
   createLectureNote,
   getNotesByLectureName,
   removeNote,
-  updateNote, // Add this import
+  updateNote,
+  getCommunityNotesByCourse,
 } = require("../controllers/noteController");
 
 router.post("/create", createLectureNote);
 router.get("/course", getUserCourseNotes);
+router.get("/courseCommunity", getCommunityNotesByCourse);
 router.get("/lecture", getNotesByLectureName);
 router.post("/delete", removeNote);
 router.put("/update", updateNote); // Add this route

@@ -3,14 +3,15 @@ const {
   createNote,
   getLectureNotes,
   deleteNoteByID,
-  updateNoteByID, // Add this import
+  updateNoteByID,
+  getCourseCommunityNotes, // Add this import
 } = require("../models/noteModel");
 
 const getUserCourseNotes = async (req, res, next) => {
   const { courseID, userID } = req.query;
   const authUser = req.user;
 
-  if (authUser.userID !== userID) {
+  if (authUser !== userID) {
     return res.status(403).json({
       status: "error",
       message: "You are not authorized to access this course",
@@ -34,7 +35,7 @@ const createLectureNote = async (req, res) => {
     req.body;
   const authUser = req.user;
 
-  if (authUser.userID !== idusers) {
+  if (authUser !== idusers) {
     return res.status(403).json({
       status: "error",
       message: "You are not authorized to access this course",
@@ -64,8 +65,8 @@ const createLectureNote = async (req, res) => {
 const removeNote = async (req, res) => {
   const { noteID, userID } = req.query;
   const authUser = req.user;
-  console.log(noteID, userID);
-  if (authUser.userID !== userID) {
+
+  if (authUser !== userID) {
     return res.status(403).json({
       status: "error",
       message: "You are not authorized to perform this action",
@@ -88,7 +89,7 @@ const getNotesByLectureName = async (req, res, next) => {
   const { lectureName, userID } = req.query;
   const authUser = req.user;
 
-  if (authUser.userID !== userID) {
+  if (authUser !== userID) {
     return res.status(403).json({
       status: "error",
       message: "You are not authorized to access this course",
@@ -120,14 +121,13 @@ const updateNote = async (req, res) => {
   } = req.body;
   const authUser = req.user;
 
-  if (authUser.userID !== idusers) {
+  if (authUser !== idusers) {
     return res.status(403).json({
       status: "error",
       message: "You are not authorized to access this course",
     });
   }
 
-  console.log(req.body);
   try {
     const response = await updateNoteByID(
       idnotes,
@@ -149,8 +149,24 @@ const updateNote = async (req, res) => {
   }
 };
 
+const getCommunityNotesByCourse = async (req, res) => {
+  const { courseID } = req.query;
+
+  try {
+    const notes = await getCourseCommunityNotes(courseID);
+
+    return res.status(200).json(notes);
+  } catch (error) {
+    return res.status(403).json({
+      status: "error",
+      message: `Error in getCourseCommunityNotes when fetching notes: ${error}`,
+    });
+  }
+};
+
 module.exports = {
   getUserCourseNotes,
+  getCommunityNotesByCourse,
   getNotesByLectureName,
   createLectureNote,
   removeNote,

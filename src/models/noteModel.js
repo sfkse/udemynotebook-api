@@ -91,9 +91,19 @@ const updateNoteByID = async (
   if (result.affectedRows) return { message: "Note updated successfully" };
 };
 
+const getCourseCommunityNotes = async (courseID) => {
+  const result = await pool.query(
+    "SELECT * FROM notes WHERE idcourses = ? and active",
+    [courseID]
+  );
+
+  return result[0];
+};
+
 module.exports = {
   getCourseNotesByUserID,
   getLectureNotes,
+  getCourseCommunityNotes,
   createNote,
   deleteNoteByID,
   updateNoteByID,
