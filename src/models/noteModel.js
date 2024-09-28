@@ -93,7 +93,7 @@ const updateNoteByID = async (
 
 const getCourseCommunityNotes = async (courseID) => {
   const result = await pool.query(
-    "SELECT * FROM notes WHERE idcourses = ? and active",
+    "SELECT * FROM notes WHERE idcourses = ? and active and isPublic",
     [courseID]
   );
 
